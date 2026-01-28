@@ -2,65 +2,132 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-
 const themes = [
-  "light", "dark", "cupcake", "bumblebee", "emerald", "corporate", 
-  "synthwave", "retro", "cyberpunk", "valentine", "halloween", 
-  "garden", "forest", "aqua", "lofi", "pastel", "fantasy", 
-  "wireframe", "black", "luxury", "dracula", "cmyk", "autumn", 
-  "business", "acid", "lemonade", "night", "coffee", "winter", 
-  "dim", "nord", "sunset"
+  "light","dark","cupcake","bumblebee","emerald","corporate",
+  "synthwave","retro","cyberpunk","valentine","halloween",
+  "garden","forest","aqua","lofi","pastel","fantasy",
+  "wireframe","black","luxury","dracula","cmyk","autumn",
+  "business","acid","lemonade","night","coffee","winter",
+  "dim","nord","sunset",
 ];
 
-export default function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+export default function ThemeSwitcherFAB() {
+   const { theme, setTheme, systemTheme } = useTheme();
 
+  const [mounted, setMounted] = useState(false);
+  const currentTheme = theme === "system" ? systemTheme : theme;
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
   return (
-    <div className="dropdown dropdown-top dropdown-end fixed right-6 bottom-6">
-      {/* The Button */}
-      <div tabIndex={0} role="button" className="btn btn-outline border-2 gap-2 shadow-lg hover:scale-105 transition-transform">
-        <span className="text-xs opacity-60 uppercase font-bold tracking-widest">Theme</span>
-        <span className="capitalize">{theme}</span>
-        <svg width="12px" height="12px" className="h-2 w-2 fill-current opacity-60" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048">
-          <path d="M1799 346l128 128-896 896-896-896 128-128 768 768 768-768z"></path>
-        </svg>
+    <>
+      {/* FAB */}
+      <div className="fab fab-bottom  fab-end gap-3 z-100">
+       <div
+  tabIndex={0}
+  role="button"
+  className="btn btn-circle btn-lg
+    bg-primary/80 backdrop-blur-xl
+    shadow-xl shadow-primary/30
+    transition-transform duration-300
+    hover:scale-105
+    focus-within:rotate-45 "
+>
+  🎨
+</div>
+      <div className="flex flex-col-reverse bg-primary/5 rounded p-[calc(.1rem+.1vw)] backdrop-blur-sm items-stretch gap-2 w-32">
+  <button
+    onClick={() =>
+      (document.getElementById("theme-modal") as HTMLDialogElement)?.showModal()
+    }
+    className="btn btn-sm btn-ghost w-full justify-between"
+  >
+    <span className="fab-label">Themes</span>
+    🖌️
+  </button>
+
+  <button
+    onClick={() => setTheme("light")}
+    className={`btn btn-sm w-full justify-between transition-all ${
+      currentTheme === "light" ? "btn-primary scale-105" : "btn-ghost"
+    }`}
+  >
+    <span className="fab-label">Light</span>
+    🌞
+  </button>
+
+  <button
+    onClick={() => setTheme("dark")}
+    className={`btn btn-sm w-full justify-between transition-all ${
+      currentTheme === "dark" ? "btn-primary scale-105" : "btn-ghost"
+    }`}
+  >
+    <span className="fab-label">Dark</span>
+    🌙
+  </button>
+</div>
+
       </div>
 
-      {/* The Dropdown Menu */}
-      <ul tabIndex={0} className="dropdown-content z-100 p-2 shadow-2xl bg-base-200 rounded-box w-64 max-h-[70vh] overflow-y-auto border border-white/10 mt-2 grid grid-cols-1 gap-1">
-        {themes.map((t) => (
-          <li key={t}>
-            <button
-              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors hover:bg-base-300 ${theme === t ? "bg-primary/20 ring-1 ring-primary" : ""}`}
-              onClick={() => setTheme(t)}
-            >
-              <div className="flex items-center gap-3">
-                {/* Visual Color Preview */}
-                <div data-theme={t} className="flex gap-1 bg-base-100 p-1 rounded-md">
-                   <div className="w-2 h-4 rounded-full bg-primary"></div>
-                   <div className="w-2 h-4 rounded-full bg-secondary"></div>
-                   <div className="w-2 h-4 rounded-full bg-accent"></div>
-                   <div className="w-2 h-4 rounded-full bg-neutral"></div>
-                </div>
-                <span className={`text-sm capitalize ${theme === t ? "font-bold text-primary" : ""}`}>
-                  {t}
-                </span>
-              </div>
-              
-              {/* Checkmark for active theme */}
-              {theme === t && (
-                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              )}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+      {/* MODAL */}
+      <dialog id="theme-modal" className="modal">
+        <div className="modal-box max-w-3xl bg-primary/5  backdrop-blur-xl">
+          <h3 className="font-bold text-lg mb-4">Choose a Theme</h3>
+
+          {/* Theme Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 py-6 px-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
+            {themes.map((t) => (
+           <button
+  key={t}
+  onClick={() => setTheme(t)}
+  className={`group relative rounded-2xl   p-4 transition-all duration-300
+    bg-base-100/35 backdrop-blur-2xl
+    border border-base-content/10
+    hover:bg-base-100/55 hover:-translate-y-1
+    hover:shadow-2xl hover:shadow-primary/20
+    ${
+      theme === t
+        ? "ring-2 ring-primary ring-offset-2 ring-offset-base-200 shadow-primary/30"
+        : ""
+    }`}
+>
+  {/* GLASS HIGHLIGHT LAYER */}
+  <div
+    aria-hidden
+    className="pointer-events-none absolute inset-0 rounded-2xl
+      bg-linear-to-br from-white/20 via-white/5 to-transparent
+      opacity-0 group-hover:opacity-100 transition-opacity"
+  />
+
+  {/* THEME PREVIEW */}
+  <div
+    data-theme={t}
+    className="relative w-[calc(3rem+3vw)] z-10 flex gap-1  rounded-xl p-2
+      bg-base-100/80 shadow-sm"
+  >
+    <span className="w-1/4 h-[calc(.8rem+.7vw)] rounded-full bg-primary" />
+    <span className="w-1/4 h-auto rounded-full bg-secondary" />
+    <span className="w-1/4 h-auto rounded-full bg-accent" />
+    <span className="w-1/4 h-auto rounded-full bg-neutral" />
+  </div>
+
+  {/* THEME NAME */}
+  <span className="relative z-10 capitalize text-sm font-semibold tracking-wide">
+    {t}
+  </span>
+</button>
+            ))}
+          </div>
+            
+
+          <div className="modal-action">
+            
+            <form method="dialog">
+              <button className="btn">Close</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
+    </>
   );
 }
