@@ -1,6 +1,7 @@
 "use client";
+
 import { useState } from "react";
-import { useDataStore } from "./useStore"; 
+import { useDataStore } from "./useStore";
 
 export function EditModal({ item }: { item: any }) {
   const [value, setValue] = useState(item.status);
@@ -8,27 +9,33 @@ export function EditModal({ item }: { item: any }) {
 
   return (
     <dialog id={`edit-${item.id}`} className="modal">
-      <div className="modal-box backdrop-blur-xl bg-base-100/80">
+      <div className="modal-box bg-base-100/80 backdrop-blur-xl">
         <h3 className="font-bold text-lg mb-4">Edit status</h3>
 
-        <input
+        <textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="input input-bordered w-full"
-          placeholder="Update status..."
+          className="input input-bordered text-wrap w-full min-h-30 resize-none "
         />
 
         <div className="modal-action">
           <form method="dialog">
             <button className="btn btn-ghost">Cancel</button>
+          </form>
+
           <button
             className="btn btn-primary"
-            onClick={() => editData(item.id, value)}
+            onClick={async () => {
+              await editData(item.id, value);
+              (
+                document.getElementById(
+                  `edit-${item.id}`
+                ) as HTMLDialogElement
+              )?.close();
+            }}
           >
             Save
           </button>
-          </form>
-
         </div>
       </div>
     </dialog>

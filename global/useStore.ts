@@ -15,21 +15,31 @@ import toast from "react-hot-toast";
 interface UserData {
   id: string;
   status: string;
+  completed: boolean;
   location: string;
   timestamp?: any;
 }
+// interface TaskData{
+//   id: string;
+//   status: string;
+//   completed: boolean;
+//   updatedAt?: string;
+// }
 
 interface DataStoreType {
   data: UserData[];
+  // task: TaskData[];
   loading: boolean;
   fetchData: () => Promise<void>;
   addData: (status: string) => Promise<void>;
   deleteData: (id: string) => Promise<void>;
   editData: (id: string, status: string) => Promise<void>;
+  toggleComplete: (id: string, completed: boolean) => Promise<void>;
 }
 
 export const useDataStore = create<DataStoreType>((set, get) => ({
   data: [],
+  // task:[],
   loading: false,
   fetchData: async () => {
     set({ loading: true });
@@ -43,6 +53,7 @@ export const useDataStore = create<DataStoreType>((set, get) => ({
   addData: async (status) => {
     await addDoc(collection(db, "test_connection"), {
       status,
+      completed: false,
       location: "Uzbekistan",
       timestamp: serverTimestamp(),
     });
@@ -64,7 +75,20 @@ export const useDataStore = create<DataStoreType>((set, get) => ({
       toast.error("Failed to delete. Please try again.");
     }
   },
-
+  // toggle
+toggleComplete: async (id: string, completed: boolean) => {
+  await updateDoc(doc(db, "test_connection", id), {
+    completed: !completed,
+  });
+  
+  set((state) => ({
+    data: state.data.map((item) =>
+      item.id === id
+        ? { ...item, completed: !completed }
+        : item
+    ),
+  }));
+  },
   // edit data
   editData: async (id: string, status: string) => {
     try {
@@ -85,4 +109,5 @@ export const useDataStore = create<DataStoreType>((set, get) => ({
       toast.error("Update failed");
     }
   },
+  
 }));

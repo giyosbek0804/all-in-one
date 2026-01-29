@@ -2,17 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useDataStore } from "./useStore";
+import { EditModal } from "./editData"; 
 
 const FetchData = () => {
-  const { data, fetchData, loading, deleteData, editData } = useDataStore();
+  const { data, fetchData, loading, deleteData, toggleComplete } = useDataStore();
+// const [completed, setCompleted]=useState<boolean>(false);
 
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-
-  // fetch once
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading && data.length === 0) {
@@ -24,137 +21,54 @@ const FetchData = () => {
   }
 
   return (
-    <ul className="mt-8 space-y-4 font-outfit">
+    <ul className="mt-8 space-y-4">
       {data.map((item) => (
         <li
           key={item.id}
-          className="
-            relative flex items-center justify-between p-4
-            bg-base-100/60 backdrop-blur-md
-            rounded-2xl shadow-lg
-            border border-base-content/10
-            animate-in fade-in slide-in-from-bottom-2
-          "
+          className={`relative flex justify-between p-4 rounded-2xl bg-base-100/60 backdrop-blur-md border border-base-content/10 cursor-pointer  duration-300 ${item.completed ? "" : "shadow-lg"} `}
         >
+          <div className="flex items-center gap-4">
+
+<input
+              type="checkbox"
+              checked={item.completed}
+              onChange={() => toggleComplete(item.id, item.completed)}
+              className={`checkbox  checked:border-success checked:bg-success checked:text-white ${item.completed ? "opacity-50" : ""}`}
+/>
           {/* LEFT */}
-          <div className="flex flex-col gap-1 pr-12">
-            <p className="font-bold text-base-content first-letter:capitalize">
-              {item.status}
-            </p>
+          <div className="">
+
+              <p className={`font-bold relative first-letter:uppercase line-clamp-1 ${item.completed ? "opacity-60" : ""} `}>{item.status} <span className={`h-[calc(.08rem+.08vw)] bg-black origin-left  absolute left-0 top-3 w-full duration-300 ${item.completed ? "scale-x-100" : "scale-x-0"}`}></span></p>
             <p className="text-xs opacity-70">
-              {item.timestamp?.toDate
-                ? item.timestamp.toDate().toLocaleString(undefined, {
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "numeric",
-                    hour12: true,
-                  })
-                : "Just now"}
+              {item.timestamp?.toDate?.().toLocaleString() ?? "Just now"}
             </p>
           </div>
+          </div>
 
-          {/* RIGHT – ACTION MENU */}
-          <div className="relative  ">
-            <button
-              className="btn  btn-sm btn-circle btn-ghost text-xl"
-              onClick={() =>
-                setOpenId(openId === item.id ? null : item.id)
-              }
-            >
-              ⋮
-            </button>
+          {/* RIGHT */}
+          <div className="relative fab top-0 left-0 ml-4">
 
-            {openId === item.id && (
-              <div
-                className="
-                  absolute top-[-20] left-10 z-50 w-44
-                  flex flex-col gap-1 p-2
-                  bg-base-100/30 backdrop-blur-xl
-                  border border-base-content/20
-                  ring-1 ring-base-content/10
-                  shadow-2xl rounded-xl
-                  animate-in fade-in zoom-in-95
-                "
-              >
-                {/* Delete */}
-                <button
-                  onClick={() => {
+             <div tabIndex={0} role="button" className="btn btn-md btn-circle btn-primary relative ">⋮</div>
+
+
+              <div className="absolute  w-max flex flex-col bg-base-100 backdrop-blur-2xl top-0 left-15">
+
+                  <button    onClick={() => {
                     deleteData(item.id);
-                    setOpenId(null);
-                  }}
-                  className="
-                    btn btn-sm btn-error btn-outline
-                    w-full justify-start gap-2
-                  "
-                >
-                  🗑️ Delete
-                </button>
-
-
-                {/* Edit */}
-                <button
-                  onClick={() => {
-                    setEditValue(item.status);
-                    setOpenId(null);
+                  
+                  }} className="btn btn-md w-full bg-base-200">🗑️ Delete</button>
+  <button    onClick={() => {
                     (
                       document.getElementById(
                         `edit-${item.id}`
                       ) as HTMLDialogElement
                     )?.showModal();
-                  }}
-                  className="
-                    btn btn-sm btn-ghost
-                    w-full justify-start gap-2
-                    hover:bg-primary/10 hover:text-primary
-                  "
-                >
-                  ✏️ Edit
-                </button>
-
-                {/* View */}
-                <button
-                  className="
-                    btn btn-sm btn-ghost
-                    w-full justify-start gap-2
-                    hover:bg-secondary/10 hover:text-secondary
-                  "
-                >
-                  👁️ View
-                </button>
+                  }} className={`btn btn-md w-full `}  disabled={item.completed}>✏️ Edit</button>
+  <button className="btn btn-md w-full"> 👁️ view</button>
               </div>
-            )}
+
           </div>
-
-          {/* EDIT MODAL */}
-          <dialog id={`edit-${item.id}`} className="modal">
-            <div className="modal-box bg-base-100/80 backdrop-blur-xl">
-              <h3 className="font-bold text-lg mb-4">Edit Status</h3>
-
-              <input
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                className="input input-bordered w-full"
-                placeholder="Update status..."
-              />
-
-              <div className="modal-action">
-                <form method="dialog">
-                  <button className="btn btn-ghost">Cancel</button>
-                </form>
-
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    editData(item.id, editValue);
-                  }}
-                >
-                  Save
-                </button>
-              </div>
-            </div>
-          </dialog>
+          <EditModal item={item} />
         </li>
       ))}
     </ul>
