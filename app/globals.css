@@ -6,7 +6,6 @@
 /* 1. Remove the hardcoded :root colors. 
       DaisyUI handles these automatically via themes! */
 
-
 /* 2. Update the body to use your variable fonts */
 body {
   /* This makes Outfit your default font for the whole app */

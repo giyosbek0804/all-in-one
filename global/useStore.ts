@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import toast from "react-hot-toast";
+// top is same no need to change it
 
 interface UserData {
   id: string;
@@ -76,18 +77,16 @@ export const useDataStore = create<DataStoreType>((set, get) => ({
     }
   },
   // toggle
-toggleComplete: async (id: string, completed: boolean) => {
-  await updateDoc(doc(db, "test_connection", id), {
-    completed: !completed,
-  });
-  
-  set((state) => ({
-    data: state.data.map((item) =>
-      item.id === id
-        ? { ...item, completed: !completed }
-        : item
-    ),
-  }));
+  toggleComplete: async (id: string, completed: boolean) => {
+    await updateDoc(doc(db, "test_connection", id), {
+      completed: !completed,
+    });
+
+    set((state) => ({
+      data: state.data.map((item) =>
+        item.id === id ? { ...item, completed: !completed } : item
+      ),
+    }));
   },
   // edit data
   editData: async (id: string, status: string) => {
@@ -109,5 +108,4 @@ toggleComplete: async (id: string, completed: boolean) => {
       toast.error("Update failed");
     }
   },
-  
 }));
