@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useDataStore } from "./useStore";
+import { useGlobalStore } from "./zustandStore";
 
 export function EditModal({ item }: { item: any }) {
   const [value, setValue] = useState(item.status);
-  const editData = useDataStore((s) => s.editData);
+  const editData = useGlobalStore((s) => s.editData);
 
   return (
     <dialog id={`edit-${item.id}`} className="modal">

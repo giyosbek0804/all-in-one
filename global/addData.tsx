@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from 'react'
-import { useDataStore } from './useStore';
+import { useGlobalStore } from './zustandStore';
 
 export const AddData = () => {
     // 1. Get everything from the store
-    const addData = useDataStore((state) => state.addData);
-    const loading = useDataStore((state) => state.loading);
+    const addData = useGlobalStore((state) => state.addData);
+    const loading = useGlobalStore((state) => state.loading);
 
     const [inputValue, setInputValue] = useState("");
 
