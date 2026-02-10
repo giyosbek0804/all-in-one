@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useGlobalStore } from "./zustandStore";
-import { EditModal } from "./editData"; 
+import { EditModal } from "./editData";
 import toast from "react-hot-toast";
 
 const FetchData = () => {
@@ -27,14 +27,16 @@ const FetchData = () => {
         <div className="flex flex-col items-center justify-center py-16 px-4">
           <div className="text-6xl mb-4 opacity-20">📝</div>
           <p className="text-lg font-semibold opacity-60 mb-2">No tasks yet</p>
-          <p className="text-sm opacity-40">Create your first task to get started</p>
+          <p className="text-sm opacity-40">
+            Create your first task to get started
+          </p>
         </div>
       ) : (
         tasks.map((item, index) => (
           <li
             key={item.taskId}
             style={{ animationDelay: `${index * 50}ms` }}
-            className={`group relative flex justify-between items-center p-5 rounded-xl bg-linear-to-br transition-all duration-300 animate-fade-in ${
+            className={`group relative focus-within:z-50 flex justify-between items-center p-5 rounded-xl bg-linear-to-br transition-all duration-300 animate-fade-in ${
               item.status === "completed"
                 ? "from-base-100/40 to-base-100/20 border border-base-content/5"
                 : "from-base-100/80 to-base-100/60 border border-base-content/10 shadow-lg hover:shadow-xl hover:scale-[1.01]"
@@ -61,14 +63,14 @@ const FetchData = () => {
                 <input
                   type="checkbox"
                   checked={item.status === "completed"}
-                  onChange={() => 
+                  onChange={() =>
                     editData(item.taskId, {
-                      status: item.status === "completed" ? "active" : "completed"
+                      status:
+                        item.status === "completed" ? "active" : "completed",
                     })
                   }
                   className="checkbox checkbox-success transition-all duration-200 hover:scale-110 cursor-pointer"
                 />
-               
               </div>
 
               {/* Content */}
@@ -85,20 +87,20 @@ const FetchData = () => {
                     {item.title}
                   </p>
                 </div>
-                
+
                 {/* Enhanced timestamp and description */}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                   <p className="text-xs opacity-60">
                     {item.createdAt?.toDate?.().toLocaleString() ?? "Just now"}
                   </p>
-                  
+
                   {/* Show edited badge */}
                   {item.edited && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-base-content/10">
                       ✏️ Edited
                     </span>
                   )}
-                  
+
                   {/* Show deadline if exists */}
                   {item.deadline && (
                     <span
@@ -108,10 +110,9 @@ const FetchData = () => {
                           : "bg-info/20 text-info"
                       }`}
                     >
-                      {new Date(item.deadline) < new Date() 
-                        ? "⚠️ Overdue" 
-                        : `📅 ${new Date(item.deadline).toLocaleDateString()}`
-                      }
+                      {new Date(item.deadline) < new Date()
+                        ? "⚠️ Overdue"
+                        : `📅 ${new Date(item.deadline).toLocaleDateString()}`}
                     </span>
                   )}
                 </div>
@@ -126,7 +127,7 @@ const FetchData = () => {
             </div>
 
             {/* Actions Menu with improved interactions */}
-            <div className="dropdown dropdown-end">
+            <div className="dropdown z-50 relative  dropdown-end">
               <button
                 tabIndex={0}
                 aria-label="Task actions"
@@ -152,11 +153,12 @@ const FetchData = () => {
                 </svg>
               </button>
 
+              {/* kebab menu */}
               <ul
                 tabIndex={0}
-                className="dropdown-content menu p-2 shadow-2xl bg-base-100 rounded-box w-48 mt-2 border border-base-content/10 z-10"
+                className="dropdown-content  border absolute top-0 right-0 menu p-2 shadow-2xl bg-base-100 rounded-box w-48 mt-2  border-base-content/10 z-100"
               >
-                <li>
+                <li className="">
                   <button
                     onClick={() => {
                       (
@@ -175,27 +177,33 @@ const FetchData = () => {
                     </div>
                   </button>
                 </li>
-                
+
                 {/* Status actions */}
                 {item.status === "completed" && (
                   <li>
-                    <button 
-                      onClick={() => editData(item.taskId, { status: "active" })}
+                    <button
+                      onClick={() =>
+                        editData(item.taskId, { status: "active" })
+                      }
                       className="flex items-center gap-3 hover:bg-warning/10 active:scale-95 transition-transform"
                     >
                       <span className="text-lg">↩️</span>
                       <div className="flex flex-col items-start">
                         <span className="font-medium">Reactivate</span>
-                        <span className="text-xs opacity-60">Mark as active</span>
+                        <span className="text-xs opacity-60">
+                          Mark as active
+                        </span>
                       </div>
                     </button>
                   </li>
                 )}
-                
+
                 {item.status === "active" && (
                   <li>
-                    <button 
-                      onClick={() => editData(item.taskId, { status: "snoozed" })}
+                    <button
+                      onClick={() =>
+                        editData(item.taskId, { status: "snoozed" })
+                      }
                       className="flex items-center gap-3 hover:bg-warning/10 active:scale-95 transition-transform"
                     >
                       <span className="text-lg">💤</span>
@@ -208,7 +216,7 @@ const FetchData = () => {
                 )}
 
                 <li>
-                  <button 
+                  <button
                     onClick={() => {
                       navigator.clipboard.writeText(
                         `${item.title}\n${item.description}\nPriority: ${item.priority}`
@@ -220,7 +228,9 @@ const FetchData = () => {
                     <span className="text-lg">📤</span>
                     <div className="flex flex-col items-start">
                       <span className="font-medium">Share</span>
-                      <span className="text-xs opacity-60">Copy to clipboard</span>
+                      <span className="text-xs opacity-60">
+                        Copy to clipboard
+                      </span>
                     </div>
                   </button>
                 </li>
@@ -230,13 +240,17 @@ const FetchData = () => {
                 {/* Archive option */}
                 <li>
                   <button
-                    onClick={() => editData(item.taskId, { status: "archived" })}
+                    onClick={() =>
+                      editData(item.taskId, { status: "archived" })
+                    }
                     className="flex items-center gap-3 hover:bg-base-content/10 active:scale-95 transition-transform"
                   >
                     <span className="text-lg">📦</span>
                     <div className="flex flex-col items-start">
                       <span className="font-medium">Archive</span>
-                      <span className="text-xs opacity-60">Move to archive</span>
+                      <span className="text-xs opacity-60">
+                        Move to archive
+                      </span>
                     </div>
                   </button>
                 </li>
@@ -244,7 +258,9 @@ const FetchData = () => {
                 <li>
                   <button
                     onClick={() => {
-                      if (confirm('Are you sure you want to delete this task?')) {
+                      if (
+                        confirm("Are you sure you want to delete this task?")
+                      ) {
                         deleteItem(item.taskId, "user");
                       }
                     }}

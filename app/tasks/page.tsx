@@ -14,14 +14,12 @@ export default function TestFirebase() {
 <h1 className="text-4xl  text-center font-bold mb-6 text-primary ">
 To Do List
         </h1>
-        <section className="flex items-start gap-[calc(1.5rem+1vw)]  justify-between">
-          <div className="flex-3/4">
+        <section >
+          <div className="">
         <AddData/>
         <FetchData />
           </div>
-          <div className="flex-1/4 border h-screen">
-            hello
-          </div>
+
         </section>
 
         <Toaster
