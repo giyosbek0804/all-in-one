@@ -1,38 +1,38 @@
 // "use client";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import  {AddData}  from "@/global/addData";
+import { AddData } from "@/global/addData";
 import FetchData from "@/global/fetchData";
-import  { Toaster } from "react-hot-toast";
-
+import { Toaster } from "react-hot-toast";
+import DatePicker from "@/global/filter-by-date";
 export default function TestFirebase() {
-
   return (
-
     <div className="min-h-screen p-10 bg-base-100 text-base-content ">
-      
       <div className=" mx-auto  ">
-<h1 className="text-4xl  text-center font-bold mb-6 text-primary ">
-To Do List
+        <h1 className="text-4xl  text-center font-bold mb-6 text-primary ">
+          To Do List
         </h1>
-        <section >
+        <section>
           <div className="">
-        <AddData/>
-        <FetchData />
+            <AddData />
+            <FetchData />
+<DatePicker/>
           </div>
-
         </section>
 
         <Toaster
-  position="top-right"
-  reverseOrder={false}
-  toastOptions={{
-    duration: 3000,
-    style: { backdropFilter: "blur(10px)", background: "rgba(255,255,255,0.8)" },
-  }}
-/>
+          position="top-right"
+          reverseOrder={false}
+          toastOptions={{
+            duration: 3000,
+            style: {
+              backdropFilter: "blur(10px)",
+              background: "rgba(255,255,255,0.8)",
+            },
+          }}
+        />
         <div className="divider mt-10">Change Theme </div>
         <div className="flex justify-center">
-            <ThemeSwitcher />
+          <ThemeSwitcher />
         </div>
       </div>
     </div>

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Onest, Smooch_Sans } from "next/font/google";
 
+const onest = Onest({
+  subsets: ["latin"],
+  variable: "--font-onest", // Creates a CSS variable
+});
 
-
+const smooch = Smooch_Sans({
+  subsets: ["latin"],
+  variable: "--font-smooch",
+});
 
 
 export const metadata: Metadata = {
@@ -13,14 +21,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-
-    <html lang="en" suppressHydrationWarning >
-
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${onest.variable} ${smooch.variable}`}
+    >
       <body>
-        <ThemeProvider>
-          
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

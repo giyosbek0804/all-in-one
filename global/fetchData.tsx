@@ -3,10 +3,16 @@
 import { useEffect } from "react";
 import { useGlobalStore } from "./zustandStore";
 import { EditModal } from "./editData";
-import toast from "react-hot-toast";
-
+import KebabMenu from "@/components/kebab-menu";
+import TaskInfo from "@/components/task-info";
 const FetchData = () => {
-  const { tasks, fetchData, loading, deleteItem, editData } = useGlobalStore();
+  const { tasks, fetchData, loading, editData } = useGlobalStore();
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
+    const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
+    return dateA - dateB; // Descending order
+  });
 
   useEffect(() => {
     fetchData();
@@ -32,11 +38,11 @@ const FetchData = () => {
           </p>
         </div>
       ) : (
-        tasks.map((item, index) => (
+        sortedTasks.map((item, index) => (
           <li
             key={item.taskId}
             style={{ animationDelay: `${index * 50}ms` }}
-            className={`group relative focus-within:z-50 flex justify-between items-center p-5 rounded-xl bg-linear-to-br transition-all duration-300 animate-fade-in ${
+            className={`group  relative focus-within:z-50 flex rounded-box justify-between items-center p-5  bg-linear-to-br transition-all duration-300 animate-fade-in ${
               item.status === "completed"
                 ? "from-base-100/40 to-base-100/20 border border-base-content/5"
                 : "from-base-100/80 to-base-100/60 border border-base-content/10 shadow-lg hover:shadow-xl hover:scale-[1.01]"
@@ -45,7 +51,7 @@ const FetchData = () => {
             {/* Priority indicator */}
             {item.priority && (
               <div
-                className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                className={`absolute left-0 top-0 bottom-0 w-1 rounded-box ${
                   item.priority === "urgent"
                     ? "bg-error animate-pulse"
                     : item.priority === "high"
@@ -89,33 +95,7 @@ const FetchData = () => {
                 </div>
 
                 {/* Enhanced timestamp and description */}
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <p className="text-xs opacity-60">
-                    {item.createdAt?.toDate?.().toLocaleString() ?? "Just now"}
-                  </p>
-
-                  {/* Show edited badge */}
-                  {item.edited && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-base-content/10">
-                      ✏️ Edited
-                    </span>
-                  )}
-
-                  {/* Show deadline if exists */}
-                  {item.deadline && (
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full ${
-                        new Date(item.deadline) < new Date()
-                          ? "bg-error/20 text-error"
-                          : "bg-info/20 text-info"
-                      }`}
-                    >
-                      {new Date(item.deadline) < new Date()
-                        ? "⚠️ Overdue"
-                        : `📅 ${new Date(item.deadline).toLocaleDateString()}`}
-                    </span>
-                  )}
-                </div>
+                <TaskInfo item={item} />
 
                 {/* Description preview */}
                 {item.description && item.description !== "testing" && (
@@ -131,7 +111,7 @@ const FetchData = () => {
               <button
                 tabIndex={0}
                 aria-label="Task actions"
-                className={`btn btn-circle btn-sm transition-all duration-200 hover:rotate-90 ${
+                className={`btn btn-circle btn-sm transition-all duration-200  ${
                   item.status === "completed"
                     ? "btn-ghost opacity-40"
                     : "btn-ghost hover:btn-primary opacity-60 group-hover:opacity-100"
@@ -154,126 +134,7 @@ const FetchData = () => {
               </button>
 
               {/* kebab menu */}
-              <ul
-                tabIndex={0}
-                className="dropdown-content  border absolute top-0 right-0 menu p-2 shadow-2xl bg-base-100 rounded-box w-48 mt-2  border-base-content/10 z-100"
-              >
-                <li className="">
-                  <button
-                    onClick={() => {
-                      (
-                        document.getElementById(
-                          `edit-${item.taskId}`
-                        ) as HTMLDialogElement
-                      )?.showModal();
-                    }}
-                    disabled={item.status === "completed"}
-                    className="flex items-center gap-3 hover:bg-primary/10 active:scale-95 transition-transform"
-                  >
-                    <span className="text-lg">✏️</span>
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">Edit</span>
-                      <span className="text-xs opacity-60">Modify task</span>
-                    </div>
-                  </button>
-                </li>
-
-                {/* Status actions */}
-                {item.status === "completed" && (
-                  <li>
-                    <button
-                      onClick={() =>
-                        editData(item.taskId, { status: "active" })
-                      }
-                      className="flex items-center gap-3 hover:bg-warning/10 active:scale-95 transition-transform"
-                    >
-                      <span className="text-lg">↩️</span>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Reactivate</span>
-                        <span className="text-xs opacity-60">
-                          Mark as active
-                        </span>
-                      </div>
-                    </button>
-                  </li>
-                )}
-
-                {item.status === "active" && (
-                  <li>
-                    <button
-                      onClick={() =>
-                        editData(item.taskId, { status: "snoozed" })
-                      }
-                      className="flex items-center gap-3 hover:bg-warning/10 active:scale-95 transition-transform"
-                    >
-                      <span className="text-lg">💤</span>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium">Snooze</span>
-                        <span className="text-xs opacity-60">Pause task</span>
-                      </div>
-                    </button>
-                  </li>
-                )}
-
-                <li>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${item.title}\n${item.description}\nPriority: ${item.priority}`
-                      );
-                      toast.success("Copied to clipboard!");
-                    }}
-                    className="flex items-center gap-3 hover:bg-success/10 active:scale-95 transition-transform"
-                  >
-                    <span className="text-lg">📤</span>
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">Share</span>
-                      <span className="text-xs opacity-60">
-                        Copy to clipboard
-                      </span>
-                    </div>
-                  </button>
-                </li>
-
-                <div className="divider my-1"></div>
-
-                {/* Archive option */}
-                <li>
-                  <button
-                    onClick={() =>
-                      editData(item.taskId, { status: "archived" })
-                    }
-                    className="flex items-center gap-3 hover:bg-base-content/10 active:scale-95 transition-transform"
-                  >
-                    <span className="text-lg">📦</span>
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">Archive</span>
-                      <span className="text-xs opacity-60">
-                        Move to archive
-                      </span>
-                    </div>
-                  </button>
-                </li>
-
-                <li>
-                  <button
-                    onClick={() => {
-                      if (
-                        confirm("Are you sure you want to delete this task?")
-                      ) {
-                        deleteItem(item.taskId, "user");
-                      }
-                    }}
-                    className="flex items-center gap-3 hover:bg-error/10 text-error active:scale-95 transition-transform"
-                  >
-                    <span className="text-lg">🗑️</span>
-                    <div className="flex flex-col items-start">
-                      <span className="font-medium">Delete</span>
-                      <span className="text-xs opacity-60">Remove forever</span>
-                    </div>
-                  </button>
-                </li>
-              </ul>
+              <KebabMenu item={item} />
             </div>
 
             <EditModal item={item} />

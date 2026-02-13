@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react"; // Added useEffect
+import { useState, useEffect } from "react";
 import { useGlobalStore } from "./zustandStore";
 
 export function EditModal({ item }: { item: any }) {
-  // Use taskId instead of id
   const [value, setValue] = useState(item.title || item.status);
   const editData = useGlobalStore((s) => s.editData);
 
-  // Sync state when the item changes
   useEffect(() => {
     setValue(item.title || item.status);
   }, [item]);
@@ -34,8 +32,6 @@ export function EditModal({ item }: { item: any }) {
           <button
             className="btn btn-primary"
             onClick={async () => {
-              // Ensure we are sending an object if your Zustand store expects one
-              // Based on your checkbox logic: editData(id, { status: ... })
               await editData(item.taskId, { title: value });
 
               (

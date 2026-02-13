@@ -2,19 +2,11 @@
 @plugin "daisyui" {
   themes: all;
 }
-
-/* 1. Remove the hardcoded :root colors. 
-      DaisyUI handles these automatically via themes! */
-
-/* 2. Update the body to use your variable fonts */
 body {
-  /* This makes Outfit your default font for the whole app */
   font-family: var(--font-outfit), sans-serif;
 }
 
-h1,
-h2,
-h3 {
-  /* This makes headings use Montserrat automatically */
-  font-family: var(--font-montserrat), sans-serif;
+@theme {
+  --font-primary: var(--font-onest);
+  --font-secondary: var(--font-smooch);
 }
