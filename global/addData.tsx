@@ -6,7 +6,7 @@ export const AddData = () => {
   const [date, setDate] = useState<Date | undefined>();
   // 1. Get everything from the store
   // const addData = useGlobalStore((state) => state.addData);
-const { addData, loading, filterDate, setFilterDate } = useGlobalStore();
+  const { addData, loading, filterDate, setFilterDate } = useGlobalStore();
 
   const [inputValue, setInputValue] = useState("");
 
@@ -16,7 +16,7 @@ const { addData, loading, filterDate, setFilterDate } = useGlobalStore();
 
     try {
       // 2. Just call the store function! No need for Firebase imports here.
-      await addData(inputValue,  filterDate);
+      await addData(inputValue, filterDate);
       setInputValue("");
       setDate(undefined);
       console.log("Success: Store updated everything");
@@ -44,7 +44,17 @@ const { addData, loading, filterDate, setFilterDate } = useGlobalStore();
       >
         {filterDate ? filterDate.toLocaleDateString() : "View/Set Deadline"}
       </button>
-
+      <button
+        type="submit"
+        disabled={loading}
+        className="btn btn-primary w-full"
+      >
+        {loading ? (
+          <span className="loading loading-spinner"></span>
+        ) : (
+          "Send Data"
+        )}
+      </button>
       <div
         popover="auto"
         id="rdp-popover"
