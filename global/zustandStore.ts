@@ -47,16 +47,19 @@ type AppTheme =
   | "nord"
   | "sunset";
 interface GlobalStoreActions {
+  setFilterDate: (date: Date | undefined) => void; // Add this
   deleteItem: (taskId: string, collectionName: "user") => Promise<void>;
-  addData: (title: string) => Promise<void>;
+  addData: (title: string, deadline?: Date) => Promise<void>;
   editData: (id: string, updates: Partial<TasksStoreData>) => Promise<void>;
   fetchData: () => Promise<void>;
+  fetchTasksByDate: (date: Date) => Promise<void>;
 }
 interface GlobalStoreData {
   theme: AppTheme;
   user: UserStoreData | null;
   tasks: TasksStoreData[];
   loading: boolean;
+  filterDate: Date | undefined; 
 }
 interface UserStoreData {
   userId: string;
@@ -72,113 +75,111 @@ interface TasksStoreData {
   status: "active" | "snoozed" | "completed" | "archived" | "deleted";
   priority: "low" | "medium" | "high" | "urgent";
   createdAt: Timestamp;
-  deadline?: string;
+  deadline?: null | Timestamp;
   edited: boolean;
   editedAt?: string;
   deadlineChanged: boolean;
 }
 // ... (Your types remain the same)
 
-export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>(
-  (set) => ({
-    theme: "dark",
-    tasks: [],
-    loading: false,
-    user: null,
-    fetchData: async () => {
-      set({ loading: true });
-      try {
-        const snapshot = await getDocs(collection(db, "user"));
-        const tasks = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            taskId: doc.id,
-            ...data,
-            // This line converts the raw Firebase object into a real Timestamp class
-            createdAt: data.createdAt
-              ? new Timestamp(
-                  data.createdAt.seconds,
-                  data.createdAt.nanoseconds
-                )
-              : Timestamp.now(),
-          };
-        }) as TasksStoreData[];
-
-        set({ loading: false, tasks });
-      } catch (error) {
-        set({ loading: false });
-        toast.error("Failed to fetch tasks.");
-      }
-    },
-
-    //  DELETE DATA
-    deleteItem: async (id: string, collectionName: "user") => {
-      set({ loading: true });
-      try {
-        await deleteDoc(doc(db, collectionName, id));
-
-        set((state) => ({
-          tasks: state.tasks.filter((item) => item.taskId !== id),
-          loading: false,
-        }));
-
-        toast.success("Deleted successfully!");
-      } catch (error) {
-        set({ loading: false });
-        toast.error("Failed to delete.");
-      }
-    },
-
-    //   ADD DATA
-    addData: async (title) => {
-      set({ loading: true });
-      try {
-        const newTaskData = {
-          title,
-          description: "testing",
-          status: "active" as const,
-          priority: "low" as const,
-          createdAt: Timestamp.now(),
-          edited: false,
-          deadlineChanged: false,
+export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set) => ({
+  theme: "dark",
+  tasks: [],
+  loading: false,
+  user: null,
+  filterDate: undefined,
+  setFilterDate: (date) => set({ filterDate: date }),
+  fetchData: async () => {
+    set({ loading: true });
+    try {
+      const snapshot = await getDocs(collection(db, "user"));
+      const tasks = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          taskId: doc.id,
+          ...data,
+          createdAt: data.createdAt ? data.createdAt : Timestamp.now(),
+          // Ensure deadline is a Timestamp if it exists
+          deadline: data.deadline ? data.deadline : null,
         };
-        const docRef = await addDoc(collection(db, "user"), newTaskData);
+      }) as TasksStoreData[];
+      set({ loading: false, tasks });
+    } catch (error) {
+      set({ loading: false });
+      toast.error("Failed to fetch tasks.");
+    }
+  },
 
-        set((state) => ({
-          tasks: [...state.tasks, { ...newTaskData, taskId: docRef.id }],
-          loading: false,
-        }));
-        set({ loading: false });
-        toast.success("Task added!");
-      } catch (error) {
-        set({ loading: false });
-        toast.error("Failed to add.");
-      }
-    },
-    //   EDIT DATA
-    editData: async (id, updates) => {
-      // set({ loading: true });
-      try {
-        // 1. Update Firebase with whatever fields are in 'updates'
-        await updateDoc(doc(db, "user", id), {
-          ...updates,
-          edited: true,
-          editedAt: new Date().toISOString(),
-        });
+  //  DELETE DATA
+  deleteItem: async (id: string, collectionName: "user") => {
+    set({ loading: true });
+    try {
+      await deleteDoc(doc(db, collectionName, id));
 
-        // 2. Update Local Zustand State
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.taskId === id ? { ...task, ...updates, edited: true } : task
-          ),
-          // loading: false,
-        }));
+      set((state) => ({
+        tasks: state.tasks.filter((item) => item.taskId !== id),
+        loading: false,
+      }));
 
-        toast.success("Updated!");
-      } catch {
-        // set({ loading: false });
-        toast.error("Failed to update.");
-      }
-    },
-  })
-);
+      toast.success("Deleted successfully!");
+    } catch (error) {
+      set({ loading: false });
+      toast.error("Failed to delete.");
+    }
+  },
+
+  //   ADD DATA
+  addData: async (title, deadline) => {
+    set({ loading: true });
+    try {
+      const newTaskData = {
+        title,
+        description: "testing",
+        status: "active" as const,
+        priority: "low" as const,
+        createdAt: Timestamp.now(),
+        edited: false,
+        deadlineChanged: false,
+        deadline: deadline ? Timestamp.fromDate(deadline) : null,
+      };
+      const docRef = await addDoc(collection(db, "user"), newTaskData);
+
+      set((state) => ({
+        tasks: [...state.tasks, { ...newTaskData, taskId: docRef.id }],
+        loading: false,
+      }));
+      set({ loading: false });
+      toast.success("Task added!");
+    } catch (error) {
+      set({ loading: false });
+      toast.error("Failed to add.");
+    }
+  },
+  //   EDIT DATA
+  editData: async (id, updates) => {
+    // set({ loading: true });
+    try {
+      // 1. Update Firebase with whatever fields are in 'updates'
+      await updateDoc(doc(db, "user", id), {
+        ...updates,
+        edited: true,
+        editedAt: new Date().toISOString(),
+      });
+
+      // 2. Update Local Zustand State
+      set((state) => ({
+        tasks: state.tasks.map((task) =>
+          task.taskId === id ? { ...task, ...updates, edited: true } : task
+        ),
+        // loading: false,
+      }));
+
+      toast.success("Updated!");
+    } catch {
+      // set({ loading: false });
+      toast.error("Failed to update.");
+    }
+  },
+
+  fetchTasksByDate: async (date: Date) => {},
+}));
