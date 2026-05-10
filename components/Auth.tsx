@@ -1,5 +1,5 @@
 "use client";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseConfigured } from "@/lib/firebase";
 import { GoogleAuthProvider, OAuthProvider, signInWithPopup } from "firebase/auth";
 import { useGlobalStore } from "@/global/zustandStore";
 import { useEffect } from "react";
@@ -16,6 +16,10 @@ export default function Auth() {
   }, [setUser]);
 
   const signInWithGoogle = async () => {
+    if (!isFirebaseConfigured) {
+      toast.error("Authentication is not configured. Please set Firebase environment variables.");
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
@@ -28,6 +32,10 @@ export default function Auth() {
   };
 
   const signInWithApple = async () => {
+    if (!isFirebaseConfigured) {
+      toast.error("Authentication is not configured. Please set Firebase environment variables.");
+      return;
+    }
     const provider = new OAuthProvider("apple.com");
     try {
       await signInWithPopup(auth, provider);

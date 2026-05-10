@@ -11,10 +11,23 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Singleton pattern to prevent re-initializing during Next.js hot reloads
-const app = getApps().length 
-  ? getApp() 
-  : initializeApp(firebaseConfig.apiKey ? firebaseConfig : { ...firebaseConfig, apiKey: "dummy-key-for-build" });
+// True only when all fields required for auth (including authDomain) are present at build time
+export const isFirebaseConfigured = !!(
+  firebaseConfig.apiKey && firebaseConfig.authDomain && firebaseConfig.projectId
+);
+
+// authDomain is required by signInWithPopup; fall back to placeholders so SSR/build
+// never throws, but auth calls will be blocked by the isFirebaseConfigured guard.
+const app = getApps().length
+  ? getApp()
+  : initializeApp({
+      apiKey: firebaseConfig.apiKey || "build-placeholder",
+      authDomain: firebaseConfig.authDomain || "build-placeholder.firebaseapp.com",
+      projectId: firebaseConfig.projectId || "build-placeholder",
+      storageBucket: firebaseConfig.storageBucket || "build-placeholder.appspot.com",
+      messagingSenderId: firebaseConfig.messagingSenderId || "000000000000",
+      appId: firebaseConfig.appId || "1:000000000000:web:build-placeholder",
+    });
 
 const db = getFirestore(app);
 const auth = getAuth(app);
