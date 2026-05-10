@@ -5,27 +5,39 @@ import { useGlobalStore } from "./zustandStore";
 import { EditModal } from "./editData";
 import KebabMenu from "@/components/kebab-menu";
 import TaskInfo from "@/components/task-info";
+import SnoozeModal from "@/components/SnoozeModal";
+
 const FetchData = () => {
-  const { tasks, fetchData, loading, editData, filterDate } = useGlobalStore();
+  const { tasks, fetchData, loading, editData, filterDate, filterStatus } = useGlobalStore();
 
-const sortedTasks = [...tasks]
-  .filter((task) => {
-    if (!filterDate) return true; // Show all if no date selected
-    if (!task.deadline) return false; // Hide tasks with no deadline if filtering
+  const sortedTasks = [...tasks]
+    .filter((task) => {
+      // 1. Filter by status
+      if (filterStatus === "active") {
+        if (task.status !== "active" && task.status !== "completed") return false;
+      } else if (filterStatus !== "all" && task.status !== filterStatus) {
+        return false;
+      }
 
-    // Compare dates (ignoring time)
-    const taskDate = task.deadline.toDate();
-    return (
-      taskDate.getDate() === filterDate.getDate() &&
-      taskDate.getMonth() === filterDate.getMonth() &&
-      taskDate.getFullYear() === filterDate.getFullYear()
-    );
-  })
-  .sort((a, b) => {
-    const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
-    const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
-    return dateA - dateB;
-  });
+
+      // 2. Filter by date
+      if (!filterDate) return true; // Show all if no date selected
+      if (!task.deadline) return false; // Hide tasks with no deadline if filtering
+
+      // Compare dates (ignoring time)
+      const taskDate = task.deadline.toDate();
+      return (
+        taskDate.getDate() === filterDate.getDate() &&
+        taskDate.getMonth() === filterDate.getMonth() &&
+        taskDate.getFullYear() === filterDate.getFullYear()
+      );
+    })
+    .sort((a, b) => {
+      const dateA = a.createdAt?.toDate?.()?.getTime() || 0;
+      const dateB = b.createdAt?.toDate?.()?.getTime() || 0;
+      return dateB - dateA; // Sort by newest first
+    });
+
 
   useEffect(() => {
     fetchData();
@@ -50,18 +62,23 @@ const sortedTasks = [...tasks]
         </button>
       )}
       <ul className="mt-8 space-y-3">
-        {tasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           // Empty state
-          <div className="flex flex-col items-center justify-center py-16 px-4">
-            <div className="text-6xl mb-4 opacity-20">📝</div>
-            <p className="text-lg font-semibold opacity-60 mb-2">
-              No tasks yet
+          <div className="flex flex-col items-center justify-center py-24 px-4 bg-base-200/20 rounded-3xl border-2 border-dashed border-base-content/5">
+            <div className="text-7xl mb-6 grayscale opacity-30">
+              {filterStatus === "active" ? "📝" : filterStatus === "snoozed" ? "💤" : filterStatus === "archived" ? "📦" : "✨"}
+            </div>
+            <p className="text-xl font-bold opacity-60 mb-2">
+              No {filterStatus !== "all" ? filterStatus : ""} tasks found
             </p>
-            <p className="text-sm opacity-40">
-              Create your first task to get started
+            <p className="text-sm opacity-40 max-w-xs text-center">
+              {filterStatus === "active" 
+                ? "Your workspace is clear! Time to relax or start something new." 
+                : `You don't have any ${filterStatus} tasks at the moment.`}
             </p>
           </div>
         ) : (
+
           sortedTasks.map((item, index) => (
             <li
               key={item.taskId}
@@ -158,11 +175,13 @@ const sortedTasks = [...tasks]
                 </button>
 
                 {/* kebab menu */}
-                <KebabMenu item={item} />
+              <KebabMenu item={item} />
               </div>
 
               <EditModal item={item} />
+              <SnoozeModal item={item} />
             </li>
+
           ))
         )}
       </ul>

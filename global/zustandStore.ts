@@ -1,5 +1,5 @@
 "use client";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import {
   collection,
   addDoc,
@@ -9,7 +9,10 @@ import {
   doc,
   updateDoc,
   Timestamp,
+  query,
+  where,
 } from "firebase/firestore";
+
 import toast from "react-hot-toast";
 import { create } from "zustand";
 
@@ -47,19 +50,23 @@ type AppTheme =
   | "nord"
   | "sunset";
 interface GlobalStoreActions {
-  setFilterDate: (date: Date | undefined) => void; // Add this
+  setFilterDate: (date: Date | undefined) => void;
+  setFilterStatus: (status: TasksStoreData["status"] | "all") => void; // Add setFilterStatus
   deleteItem: (taskId: string, collectionName: "user") => Promise<void>;
   addData: (title: string, deadline?: Date) => Promise<void>;
   editData: (id: string, updates: Partial<TasksStoreData>) => Promise<void>;
   fetchData: () => Promise<void>;
   fetchTasksByDate: (date: Date) => Promise<void>;
+  setUser: (user: any) => void;
+  logout: () => Promise<void>;
 }
 interface GlobalStoreData {
   theme: AppTheme;
-  user: UserStoreData | null;
+  user: any | null;
   tasks: TasksStoreData[];
   loading: boolean;
   filterDate: Date | undefined; 
+  filterStatus: TasksStoreData["status"] | "all"; // Add filterStatus
 }
 interface UserStoreData {
   userId: string;
@@ -70,6 +77,7 @@ interface UserStoreData {
 }
 interface TasksStoreData {
   taskId: string;
+  uid: string; // Added uid
   title: string;
   description: string;
   status: "active" | "snoozed" | "completed" | "archived" | "deleted";
@@ -80,6 +88,7 @@ interface TasksStoreData {
   editedAt?: string;
   deadlineChanged: boolean;
 }
+
 // ... (Your types remain the same)
 
 export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set) => ({
@@ -88,27 +97,39 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
   loading: false,
   user: null,
   filterDate: undefined,
+  filterStatus: "active", // Default to active tasks
   setFilterDate: (date) => set({ filterDate: date }),
+  setFilterStatus: (status) => set({ filterStatus: status }),
   fetchData: async () => {
+
+    const user = useGlobalStore.getState().user;
+    if (!user) return; // Don't fetch if no user
+
     set({ loading: true });
     try {
-      const snapshot = await getDocs(collection(db, "user"));
+      console.log("Fetching tasks for user:", user.uid);
+      // Query tasks where uid matches current user
+      const q = query(collection(db, "user"), where("uid", "==", user.uid));
+      const snapshot = await getDocs(q);
+      
+      console.log("Snapshot size:", snapshot.size);
       const tasks = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
           taskId: doc.id,
           ...data,
           createdAt: data.createdAt ? data.createdAt : Timestamp.now(),
-          // Ensure deadline is a Timestamp if it exists
           deadline: data.deadline ? data.deadline : null,
         };
       }) as TasksStoreData[];
       set({ loading: false, tasks });
     } catch (error) {
+      console.error("Fetch error:", error);
       set({ loading: false });
       toast.error("Failed to fetch tasks.");
     }
   },
+
 
   //  DELETE DATA
   deleteItem: async (id: string, collectionName: "user") => {
@@ -121,18 +142,25 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
         loading: false,
       }));
 
-      toast.success("Deleted successfully!");
+      toast.success("Task deleted permanently");
     } catch (error) {
       set({ loading: false });
-      toast.error("Failed to delete.");
+      toast.error("Could not delete task");
     }
   },
 
   //   ADD DATA
   addData: async (title, deadline) => {
+    const user = useGlobalStore.getState().user;
+    if (!user) {
+      toast.error("You must be logged in to add tasks.");
+      return;
+    }
+
     set({ loading: true });
     try {
       const newTaskData = {
+        uid: user.uid, // Store user's ID
         title,
         description: "testing",
         status: "active" as const,
@@ -148,11 +176,11 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
         tasks: [...state.tasks, { ...newTaskData, taskId: docRef.id }],
         loading: false,
       }));
-      set({ loading: false });
-      toast.success("Task added!");
+      toast.success("Task added to your list");
     } catch (error) {
+      console.error("Add error:", error);
       set({ loading: false });
-      toast.error("Failed to add.");
+      toast.error("Failed to save task");
     }
   },
   //   EDIT DATA
@@ -182,4 +210,16 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
   },
 
   fetchTasksByDate: async (date: Date) => {},
+
+  setUser: (user) => set({ user }),
+  logout: async () => {
+    try {
+      await auth.signOut();
+      set({ user: null, tasks: [] });
+      toast.success("Successfully logged out");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  },
 }));
+

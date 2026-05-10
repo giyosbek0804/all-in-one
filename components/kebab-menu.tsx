@@ -47,20 +47,27 @@ const KebabMenu = ({ item }: KebabMenuProps) => {
           </li>
         )}
 
-        {item.status === "active" && (
+        {item.status !== "snoozed" && (
           <li>
             <button
-              onClick={() => editData(item.taskId, { status: "snoozed" })}
+              onClick={() => {
+                (
+                  document.getElementById(
+                    `snooze-${item.taskId}`
+                  ) as HTMLDialogElement
+                )?.showModal();
+              }}
               className="flex items-center gap-3 hover:bg-warning/10 active:scale-95 transition-transform"
             >
               <span className="text-lg">💤</span>
               <div className="flex flex-col items-start">
                 <span className="font-medium">Snooze</span>
-                <span className="text-xs opacity-60">Pause task</span>
+                <span className="text-xs opacity-60">Set new deadline</span>
               </div>
             </button>
           </li>
         )}
+
 
         <li>
           <button
