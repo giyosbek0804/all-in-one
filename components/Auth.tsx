@@ -15,6 +15,21 @@ export default function Auth() {
     return () => unsubscribe();
   }, [setUser]);
 
+  const handleAuthError = (error: unknown) => {
+    const code = (error as { code?: string })?.code;
+    if (code === "auth/unauthorized-domain") {
+      toast.error(
+        "This domain is not authorized in Firebase. Add it to Firebase Console → Authentication → Settings → Authorized domains.",
+        { duration: 8000 }
+      );
+    } else if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+      // user dismissed — no toast needed
+    } else {
+      toast.error("Sign-in failed. Please try again.");
+    }
+    console.error(error);
+  };
+
   const signInWithGoogle = async () => {
     if (!isFirebaseConfigured) {
       toast.error("Authentication is not configured. Please set Firebase environment variables.");
@@ -24,10 +39,8 @@ export default function Auth() {
     try {
       await signInWithPopup(auth, provider);
       toast.success("Welcome back! Signed in with Google");
-
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to sign in with Google.");
+      handleAuthError(error);
     }
   };
 
@@ -41,8 +54,7 @@ export default function Auth() {
       await signInWithPopup(auth, provider);
       toast.success("Signed in with Apple!");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to sign in with Apple.");
+      handleAuthError(error);
     }
   };
 
