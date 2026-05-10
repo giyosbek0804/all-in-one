@@ -59,16 +59,30 @@ interface GlobalStoreActions {
   fetchTasksByDate: (date: Date) => Promise<void>;
   setUser: (user: any) => void;
   logout: () => Promise<void>;
+  checkNotifications: () => void;
+  removeNotification: (id: string) => void; // Add removeNotification
+  clearNotifications: () => void; // Add clearNotifications
 }
 interface GlobalStoreData {
   theme: AppTheme;
   user: any | null;
   tasks: TasksStoreData[];
   loading: boolean;
-  filterDate: Date | undefined; 
-  filterStatus: TasksStoreData["status"] | "all"; // Add filterStatus
+  filterDate: Date | undefined;
+  filterStatus: TasksStoreData["status"] | "all";
+  notifications: AppNotification[];
+}
+
+
+interface AppNotification {
+  id: string;
+  taskId: string;
+  message: string;
+  type: "near" | "missed";
+  timestamp: Date;
 }
 interface UserStoreData {
+
   userId: string;
   username: string;
   email: string;
@@ -96,9 +110,12 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
   tasks: [],
   loading: false,
   user: null,
+  filterStatus: "active",
   filterDate: undefined,
-  filterStatus: "active", // Default to active tasks
+  notifications: [],
   setFilterDate: (date) => set({ filterDate: date }),
+
+
   setFilterStatus: (status) => set({ filterStatus: status }),
   fetchData: async () => {
 
@@ -221,5 +238,52 @@ export const useGlobalStore = create<GlobalStoreActions & GlobalStoreData>((set)
       toast.error("Error signing out");
     }
   },
+
+  checkNotifications: () => {
+    const { tasks } = useGlobalStore.getState();
+    const now = new Date();
+    const threeDaysFromNow = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    
+    const newNotifications: AppNotification[] = [];
+
+    tasks.forEach(task => {
+      if (task.status === "completed" || !task.deadline) return;
+
+      const deadline = task.deadline.toDate();
+      
+      if (deadline < now) {
+        newNotifications.push({
+          id: `missed-${task.taskId}`,
+          taskId: task.taskId,
+          message: `You missed: ${task.title}`,
+          type: "missed",
+          timestamp: new Date()
+        });
+      } else if (deadline <= threeDaysFromNow) {
+        const daysLeft = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        newNotifications.push({
+          id: `near-${task.taskId}`,
+          taskId: task.taskId,
+          message: `${task.title} is due in ${daysLeft} day(s)`,
+          type: "near",
+          timestamp: new Date()
+        });
+      }
+    });
+
+    set({ notifications: newNotifications });
+  },
+
+  removeNotification: (id) => {
+    set((state) => ({
+      notifications: state.notifications.filter(n => n.id !== id)
+    }));
+  },
+
+  clearNotifications: () => {
+    set({ notifications: [] });
+  },
 }));
+
+
 

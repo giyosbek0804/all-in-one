@@ -1,37 +1,54 @@
 "use client";
-
-import { useState } from "react";
+import { useGlobalStore } from "./zustandStore";
 import { DayPicker } from "react-day-picker";
 
 export default function DatePicker() {
-  // const [date1, setDate1] = useState<Date | undefined>();
-  // console.log(date1);
+  const { filterDate, setFilterDate } = useGlobalStore();
+
   return (
-    <>
-      {/* <button
-        popoverTarget="rdp-popover1"
-        className="input input-border"
-        style={{ anchorName: "--rdp" } as React.CSSProperties}
+    <div className="flex items-center gap-2">
+      <button
+        popoverTarget="global-filter-popover"
+        className={`btn btn-sm rounded-xl gap-3 font-bold transition-all shadow-md group ${
+          filterDate ? "btn-primary scale-105 px-4" : "btn-outline border-base-content/10 bg-base-100 hover:bg-base-200"
+        }`}
+        style={{ anchorName: "--filter-anchor" } as React.CSSProperties}
       >
-        {date1 ? date1.toLocaleDateString() : "Pick a date"}
+        <span className={`text-xl transition-transform group-hover:rotate-12 ${filterDate ? "text-primary-content" : "text-primary"}`}>
+          {filterDate ? "📅" : "🗓️"}
+        </span>
+        <span className="text-xs uppercase tracking-widest">{filterDate ? filterDate.toLocaleDateString() : "Filter"}</span>
       </button>
+
+      {filterDate && (
+        <button 
+          onClick={() => setFilterDate(undefined)}
+          className="btn btn-circle btn-xs btn-ghost text-error transition-all hover:bg-error/10"
+          title="Clear date filter"
+        >
+          ✕
+        </button>
+      )}
+
       <div
         popover="auto"
-        id="rdp-popove1r"
-        className="dropdown "
-        style={{ positionAnchor: "--rdp" } as React.CSSProperties}
+        id="global-filter-popover"
+        className="dropdown p-0 border-none bg-transparent"
+        style={{ positionAnchor: "--filter-anchor" } as React.CSSProperties}
       >
-        <DayPicker
-          className="react-day-picker bg-base-200/55 backdrop-blur-lg font-primary   rounded-xl shadow-lg  "
-          mode="single"
-          selected={date1}
-          onSelect={setDate1}
-          modifiersClassNames={{
-            selected: "bg-primary/50 rounded-xl   ",
-            today: "bg-secondary   rounded-xl font-secondary  ",
-          }}
-        />
-      </div> */}
-    </>
+        <div className="bg-base-100 p-4 rounded-3xl shadow-2xl border border-base-content/10 backdrop-blur-2xl mt-2">
+          <DayPicker
+            mode="single"
+            selected={filterDate}
+            onSelect={setFilterDate}
+            className="react-day-picker font-primary"
+            modifiersClassNames={{
+              selected: "bg-primary text-primary-content rounded-xl font-bold",
+              today: "text-primary font-black underline underline-offset-8"
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }

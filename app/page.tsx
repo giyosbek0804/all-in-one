@@ -7,6 +7,7 @@ import { Toaster } from "react-hot-toast";
 import DatePicker from "@/global/filter-by-date";
 import Auth from "@/components/Auth";
 import { useGlobalStore } from "@/global/zustandStore";
+import Notifications from "@/components/Notifications";
 
 /**
  * Home page that will eventually direct to either finance or tasks. 
@@ -20,12 +21,20 @@ export default function Home() {
   return (
     <div className="min-h-screen p-4 sm:p-10 bg-base-100 text-base-content font-primary">
       <div className="max-w-3xl mx-auto space-y-10">
-        <header className="text-center space-y-2">
-          <h1 className="text-5xl font-black tracking-tight text-primary drop-shadow-sm">
-            All-In-One Tasks
-          </h1>
-          <p className="opacity-50 text-sm font-medium uppercase tracking-widest">Organize your life elegantly</p>
+        <header className="relative flex justify-center items-center py-4 z-50">
+
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <Notifications />
+          </div>
+          <div className="text-center space-y-1">
+            <h1 className="text-5xl font-black tracking-tighter text-primary drop-shadow-sm">
+              All-In-One
+            </h1>
+            <p className="opacity-40 text-[10px] font-black uppercase tracking-[0.3em]">Elegant Productivity</p>
+          </div>
         </header>
+
+
 
         <Auth />
 
@@ -35,7 +44,7 @@ export default function Home() {
               <AddData />
             </section>
             
-            <section className="space-y-4">
+            <section className="space-y-6">
               <div className="tabs tabs-box bg-base-200/30 p-1 rounded-2xl flex flex-wrap sm:flex-nowrap gap-1">
                 {[
                   { id: "active", label: "Active", emoji: "🔥" },
@@ -61,14 +70,17 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-6">
-                <div className="flex justify-between items-center px-2">
-                   <h2 className="text-2xl font-bold capitalize">{filterStatus} Tasks</h2>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-2">
+                   <h2 className="text-3xl font-black capitalize tracking-tight">{filterStatus} Tasks</h2>
                    <DatePicker />
                 </div>
-                <FetchData />
+                <div className="bg-base-200/30 rounded-3xl p-2 sm:p-4 min-h-[400px]">
+                  <FetchData />
+                </div>
               </div>
             </section>
+
           </main>
         ) : (
           <div className="text-center py-32 space-y-6">

@@ -14,10 +14,11 @@ const FetchData = () => {
     .filter((task) => {
       // 1. Filter by status
       if (filterStatus === "active") {
-        if (task.status !== "active" && task.status !== "completed") return false;
+        if (task.status !== "active") return false;
       } else if (filterStatus !== "all" && task.status !== filterStatus) {
         return false;
       }
+
 
 
       // 2. Filter by date
