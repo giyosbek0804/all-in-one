@@ -1,5 +1,5 @@
 "use client";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseConfigured } from "@/lib/firebase";
 import { GoogleAuthProvider, OAuthProvider, signInWithPopup } from "firebase/auth";
 import { useGlobalStore } from "@/global/zustandStore";
 import { useEffect } from "react";
@@ -15,26 +15,46 @@ export default function Auth() {
     return () => unsubscribe();
   }, [setUser]);
 
+  const handleAuthError = (error: unknown) => {
+    const code = (error as { code?: string })?.code;
+    if (code === "auth/unauthorized-domain") {
+      toast.error(
+        "This domain is not authorized in Firebase. Add it to Firebase Console → Authentication → Settings → Authorized domains.",
+        { duration: 8000 }
+      );
+    } else if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+      // user dismissed — no toast needed
+    } else {
+      toast.error("Sign-in failed. Please try again.");
+    }
+    console.error(error);
+  };
+
   const signInWithGoogle = async () => {
+    if (!isFirebaseConfigured) {
+      toast.error("Authentication is not configured. Please set Firebase environment variables.");
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
       toast.success("Welcome back! Signed in with Google");
-
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to sign in with Google.");
+      handleAuthError(error);
     }
   };
 
   const signInWithApple = async () => {
+    if (!isFirebaseConfigured) {
+      toast.error("Authentication is not configured. Please set Firebase environment variables.");
+      return;
+    }
     const provider = new OAuthProvider("apple.com");
     try {
       await signInWithPopup(auth, provider);
       toast.success("Signed in with Apple!");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to sign in with Apple.");
+      handleAuthError(error);
     }
   };
 
