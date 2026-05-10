@@ -12,9 +12,14 @@ const firebaseConfig = {
 };
 
 // Singleton pattern to prevent re-initializing during Next.js hot reloads
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length 
+  ? getApp() 
+  : initializeApp(firebaseConfig.apiKey ? firebaseConfig : { ...firebaseConfig, apiKey: "dummy-key-for-build" });
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
+
 
